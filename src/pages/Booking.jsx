@@ -1,6 +1,14 @@
 
 import { useState } from "react";
 import "./Booking.css";
+import liff, {initLiff} from "../liff";
+
+const ROOM_LABELS = {
+  無景房:"溫馨套房(無景)",
+  有景房:"園景雅致套房(有景)",
+  露天房:"半露天風呂套房",
+  特別房:"特別是套房",
+};
 
 function Booking() {
   const [formData, setFormData] = useState({
@@ -16,19 +24,38 @@ function Booking() {
   const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
 
+  // LIFF相關狀套
+  const [liffReady, setLiffReady] = useState(false);
+  const [liffError, setLiffError] = useState("");
+  const [profile, setProfile] = useState(null);
+  const [sending, setSending] = useState(false);
+  const [sent, setSent] = useState(false);
+
+  // 初始化LIFF
+  useEffect(() => {
+    initLiff()
+      .then(async () => {
+        if (!liff.isLoggedIn()) {
+          liff.login({redirectUri: window.location.href});
+          return;
+        }
+        const p = await liff.getProfile();
+        setProfile(p);
+        setFormDate((prev) =>
+          prev.name 
+            ? prev
+            : { ...prev, name: p.displayName}
+        );
+        setLiffReady(true);
+      })
+      .catch((err) => setLiffError(err.message));
+  }, []);
+
   // 更新欄位資料
   const handleChange = (e) => {
     const { name, value } = e.target;
-
-    setFormData({
-      ...formData,
-      [name]: value,
-    });
-
-    setErrors({
-      ...errors,
-      [name]: "",
-    });
+    setFormData((prev) => ({ ...prev, [name]:value }));
+    setErrors((prev) => ({ ...prev, [name]: ""}));
   };
 
   // 欄位驗證
@@ -61,7 +88,6 @@ function Booking() {
     }
 
     setErrors(newErrors);
-
     return Object.keys(newErrors).length === 0;
   };
 
@@ -79,6 +105,69 @@ function Booking() {
     setSubmitted(false);
   };
 
+  const buildMessage = () =>
+  [
+    "【訂房資料確認】",
+    `入住代表:${formData.name}`,
+    `入住日期:${formData.checkIn}`,
+    `退房日期:${formData.checkOut}`,
+    `入住人數:${formData.guests}人`,
+    `房型:${room_labels[formData.roomType] || formData.roomType}`,
+    `抵達時間:${formData.arrivalTime || "未提供"}`,
+    `備註:${formData.note || "無"}`,
+  ].join("\n");
+
+  const handleConfirm = async () => {
+    setSending(true);
+    setLiffError("");
+    try {
+      if (liff.isInClient()) {
+        await liff.sendMessages([{ 
+          type: "text",
+          text: buildMessage()
+        }]);
+        liff.closeWindow();
+      }else {
+        setSent(true);
+      }
+    }catch (err) {
+      setLiffError(
+        "資料傳送失敗，請從LINE聊天室重新開啟此頁面後再試一次。(" +
+        err.message +
+        ")"
+      );
+    }finally {
+      setSending(flase);
+    }
+  };
+
+  if (liffError && !liffReady) {
+    return (
+      <div className="booking-container">
+        <p className="error">
+          LINE 初始化失敗: {liffError}
+        </p>
+      </div>
+    );
+  }
+
+  if (!liffReady) {
+    return (
+      <div className="booking-container">
+        <p> 載入中... </p>
+      </div>
+    );
+  }
+
+  if (sent) {
+    return (
+      <div className="booking-container">
+        <h2> 已收到您的預約 </h2>
+        <p> 我們會盡快與您聯繫確認訂房 </p>
+      </div>
+    );
+  }
+
   if (submitted) {
     return (
       <div className="booking-container">
@@ -94,9 +183,17 @@ function Booking() {
           <p>備註：{formData.note || "無"}</p>
         </div>
 
-        <button onClick={handleEdit}>
+        {liffError && <p className="error"> {liffError} </p>}
+
+        <button onClick={handleEdit} disabled={sending}>
           修改資料
         </button>
+        <button onClick={handleConfirm} disabled={sending}>
+          {sending
+            ? "送出中..."
+            : "確認送出預約"
+          }
+        </button> 
       </div>
     );
   }
@@ -105,8 +202,23 @@ function Booking() {
     <div className="booking-container">
       <h2>加賀屋訂房預約表單</h2>
 
-      <form onSubmit={handleSubmit}>
+      {profile && (
+        <div className="line-user">
+          {profile.pictureUrl && (
+            <img 
+              src={profile.pictureUrl}
+              alt=""
+              width={40}
+              height={40}
+            />
+          )}
+          <span>
+            {profile.displayName}，您好
+          </span>
+        </div>
+      )}
 
+      <form onSubmit={handleSubmit}>
         <label>入住代表姓名 *</label>
         <input
           type="text"
@@ -115,7 +227,9 @@ function Booking() {
           onChange={handleChange}
           placeholder="請輸入姓名"
         />
-        <p className="error">{errors.name}</p>
+        <p className="error">
+          {errors.name}
+        </p>
 
         <label>入住日期 *</label>
         <input
@@ -154,12 +268,15 @@ function Booking() {
           onChange={handleChange}
         >
           <option value="">請選擇房型</option>
-          <option value="無景房">溫馨套房(無景)</option>
-          <option value="有景房">園景雅致套房(有景)</option>
-          <option value="露天房">半露天風呂套房</option>
-          <option value="特別房">特別室套房</option>
+          {Object.entries(ROOM_LABELS).map(([value, label]) => (
+            <option key={value} value={value}>
+              {label}
+            </option>
+          ))}
         </select>
-        <p className="error">{errors.roomType}</p>
+        <p className="error">
+          {errors.roomType}
+        </p>
 
         <label>預計抵達時間</label>
         <input
