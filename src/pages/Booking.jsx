@@ -41,7 +41,7 @@ function Booking() {
         }
         const p = await liff.getProfile();
         setProfile(p);
-        setFormDate((prev) =>
+        setFormData((prev) =>
           prev.name 
             ? prev
             : { ...prev, name: p.displayName}
