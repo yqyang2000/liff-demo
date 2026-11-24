@@ -3,14 +3,16 @@
   max-width: 600px;
   margin: 40px auto;
   padding: 30px;
-  background: #ffffff;
-  border-radius: 12px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  background: #F5F1E8;
+  border-radius: 14px;
+  box-shadow: 0 4px 16px rgba(57, 58, 50, 0.10);
+  border: 1px solid #E5DED0;
 }
 
 .booking-container h2 {
   text-align: center;
   margin-bottom: 25px;
+  color: #536B5A;
 }
 
 .booking-container form {
@@ -22,17 +24,28 @@
   margin-top: 15px;
   margin-bottom: 6px;
   font-weight: 600;
+  color: #393A32;
 }
 
 .booking-container input,
 .booking-container select,
 .booking-container textarea {
   padding: 10px;
-  border: 1px solid #cccccc;
+  border: 1px solid #D5D0C3;
   border-radius: 6px;
   font-size: 15px;
   width: 100%;
   box-sizing: border-box;
+  background: #FFFEFA;
+  color: #393A32;
+}
+
+.booking-container input:focus,
+.booking-container select:focus,
+.booking-container textarea:focus {
+  outline: none;
+  border-color: #718873;
+  box-shadow: 0 0 0 3px rgba(113, 136, 115, 0.15);
 }
 
 .booking-container button {
@@ -40,25 +53,28 @@
   padding: 12px;
   border: none;
   border-radius: 6px;
-  background: #b47124;
-  color: white;
+  background: #536B5A;
+  color: #FFFFFF;
   font-size: 16px;
   cursor: pointer;
+  transition: background 0.3s ease;
 }
 
 .booking-container button:hover {
-  background: #285348;
+  background: #3D5545;
 }
 
 .error {
-  color: #d93025;
+  color: #B64C40;
   font-size: 13px;
   margin: 4px 0 0;
 }
 
 .summary {
   padding: 20px;
-  background: #f5f7f6;
+  background: #E9EDE5;
   border-radius: 8px;
   line-height: 1.8;
+  color: #393A32;
+  border-left: 4px solid #A98261;
 }
