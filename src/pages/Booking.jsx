@@ -112,7 +112,7 @@ function Booking() {
     `入住日期:${formData.checkIn}`,
     `退房日期:${formData.checkOut}`,
     `入住人數:${formData.guests}人`,
-    `房型:${room_labels[formData.roomType] || formData.roomType}`,
+    `房型:${ROOM_LABELS[formData.roomType] || formData.roomType}`,
     `抵達時間:${formData.arrivalTime || "未提供"}`,
     `備註:${formData.note || "無"}`,
   ].join("\n");
