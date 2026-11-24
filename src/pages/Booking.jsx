@@ -204,14 +204,6 @@ function Booking() {
 
       {profile && (
         <div className="line-user">
-          {profile.pictureUrl && (
-            <img 
-              src={profile.pictureUrl}
-              alt=""
-              width={40}
-              height={40}
-            />
-          )}
           <span>
             {profile.displayName}，您好
           </span>
